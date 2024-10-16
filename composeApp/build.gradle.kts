@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+
+    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -40,12 +42,25 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
+            implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+
+
+            implementation(libs.lifecycle.viewmodel.compose)
+
+
+            implementation(libs.adaptive)
+            implementation(libs.adaptive.layout)
+            implementation(libs.adaptive.navigation)
+
+            implementation(libs.kotlinx.serialization.json)
+
+
+
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
