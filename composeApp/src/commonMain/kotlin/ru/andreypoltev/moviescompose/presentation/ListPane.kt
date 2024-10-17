@@ -1,4 +1,4 @@
-package ru.andreypoltev.moviescompose
+package ru.andreypoltev.moviescompose.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,19 +7,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -51,11 +49,16 @@ import moviescompose.composeapp.generated.resources.movie_placeholder
 import moviescompose.composeapp.generated.resources.movies
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import ru.andreypoltev.moviescompose.MainViewModel
 import ru.andreypoltev.moviescompose.model.Film
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun ListPane(viewModel: MainViewModel, onFilmClicked: (Film) -> Unit) {
+fun ListPane(
+    viewModel: MainViewModel,
+    lazyGridScrollState: LazyGridState,
+    onFilmClicked: (Film) -> Unit,
+) {
 
     val movies by viewModel.filteredList.collectAsState()
 
@@ -72,8 +75,8 @@ fun ListPane(viewModel: MainViewModel, onFilmClicked: (Film) -> Unit) {
         )
     }) { paddingValues ->
 
-
         LazyVerticalGrid(
+            state = lazyGridScrollState,
             modifier = Modifier.padding(paddingValues),
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),

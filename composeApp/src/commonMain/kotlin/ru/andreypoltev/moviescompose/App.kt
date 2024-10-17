@@ -1,55 +1,33 @@
 package ru.andreypoltev.moviescompose
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import moviescompose.composeapp.generated.resources.Res
-import moviescompose.composeapp.generated.resources.genres
-import moviescompose.composeapp.generated.resources.movie_placeholder
-import moviescompose.composeapp.generated.resources.movies
-import org.jetbrains.compose.resources.painterResource
+import moviescompose.composeapp.generated.resources.retry
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import ru.andreypoltev.moviescompose.model.ApiStatus
 
 import ru.andreypoltev.moviescompose.model.Film
+import ru.andreypoltev.moviescompose.presentation.DetailsPane
+import ru.andreypoltev.moviescompose.presentation.ListPane
+import ru.andreypoltev.moviescompose.ui.composables.LoadingIndicator
 import ru.andreypoltev.moviescompose.ui.theme.MoviesComposeTheme
+import ru.andreypoltev.moviescompose.utils.HandleBackGesture
 
 @Composable
 @Preview
@@ -77,30 +55,50 @@ fun AppContent(
 
     when (apiStatus) {
         is ApiStatus.Error -> {
-
+            val scope = rememberCoroutineScope()
+            val snackbarHostState = remember { SnackbarHostState() }
             val message = (apiStatus as ApiStatus.Error).message
-            Text(
-                text = message, color = Color.Red, modifier = Modifier.padding(16.dp)
-            )
 
+            Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) {
+
+                val res = stringResource(
+                    Res.string.retry
+                )
+
+                LaunchedEffect(message) {
+                    scope.launch {
+
+                        val result = snackbarHostState.showSnackbar(
+                            message = message, actionLabel = res
+                        )
+
+
+                        when (result) {
+
+                            SnackbarResult.Dismissed ->  {
+
+                            }
+                            SnackbarResult.ActionPerformed ->  {
+                                viewModel.retry()
+                            }
+                        }
+
+                    }
+                }
+            }
         }
 
-        ApiStatus.Idle -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-
-        }
-
-        ApiStatus.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+        ApiStatus.Idle, ApiStatus.Loading -> {
+            LoadingIndicator()
         }
 
         is ApiStatus.Success -> {
 
             val navigator = rememberListDetailPaneScaffoldNavigator<Film>()
+
+            val lazyGridScrollState = rememberLazyGridState()
+
+            HandleBackGesture(navigator)
 
             ListDetailPaneScaffold(modifier = Modifier.statusBarsPadding(),
                 directive = navigator.scaffoldDirective,
@@ -108,7 +106,9 @@ fun AppContent(
                 listPane = {
 
                     AnimatedPane {
-                        ListPane(viewModel = viewModel) { film ->
+                        ListPane(
+                            viewModel = viewModel, lazyGridScrollState = lazyGridScrollState
+                        ) { film ->
                             navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, film)
                         }
                     }
@@ -132,6 +132,8 @@ fun AppContent(
 
 
 }
+
+
 
 
 

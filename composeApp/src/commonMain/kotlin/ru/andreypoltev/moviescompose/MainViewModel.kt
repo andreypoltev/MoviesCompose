@@ -13,8 +13,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import ru.andreypoltev.moviescompose.model.ApiStatus
 import ru.andreypoltev.moviescompose.model.Film
 import ru.andreypoltev.moviescompose.model.Movies
+import ru.andreypoltev.moviescompose.utils.Constants
 
 class MainViewModel : ViewModel() {
 
@@ -31,6 +33,10 @@ class MainViewModel : ViewModel() {
     val genres = _genres.asStateFlow()
 
     init {
+        fetchMovies()
+    }
+
+    fun retry() {
         fetchMovies()
     }
 
@@ -88,7 +94,6 @@ class MainViewModel : ViewModel() {
                     })
                 }
             }
-
 
             val resp: Movies = client.get(Constants.API_LINK).body()
 

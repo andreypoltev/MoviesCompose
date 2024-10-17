@@ -1,6 +1,4 @@
-package ru.andreypoltev.moviescompose
-
-import ru.andreypoltev.moviescompose.model.Film
+package ru.andreypoltev.moviescompose.model
 
 sealed class ApiStatus {
     object Loading : ApiStatus()
