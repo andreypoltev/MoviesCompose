@@ -75,7 +75,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    expect fun getApiResponse()
 
     private suspend fun getApiResponse(): List<Film> {
 
