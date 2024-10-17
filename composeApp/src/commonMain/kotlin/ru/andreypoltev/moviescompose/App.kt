@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -38,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import moviescompose.composeapp.generated.resources.Res
 import moviescompose.composeapp.generated.resources.genres
 import moviescompose.composeapp.generated.resources.movie_placeholder
@@ -72,33 +73,64 @@ fun AppContent(
 
 ) {
 
-    val navigator = rememberListDetailPaneScaffoldNavigator<Film>()
+    val apiStatus by viewModel.apiStatus.collectAsState()
 
-    ListDetailPaneScaffold(modifier = Modifier.statusBarsPadding(),
-        directive = navigator.scaffoldDirective,
-        value = navigator.scaffoldValue,
-        listPane = {
+    when (apiStatus) {
+        is ApiStatus.Error -> {
 
-            AnimatedPane {
-                ListPane(viewModel = viewModel) { film ->
-                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, film)
-                }
+            val message = (apiStatus as ApiStatus.Error).message
+            Text(
+                text = message, color = Color.Red, modifier = Modifier.padding(16.dp)
+            )
+
+        }
+
+        ApiStatus.Idle -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
 
+        }
 
-        },
-        detailPane = {
+        ApiStatus.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
 
-            AnimatedPane {
-                navigator.currentDestination?.content?.let { movie ->
-                    DetailsPane(movie) {
-                        if (navigator.canNavigateBack()) {
-                            navigator.navigateBack()
+        is ApiStatus.Success -> {
+
+            val navigator = rememberListDetailPaneScaffoldNavigator<Film>()
+
+            ListDetailPaneScaffold(modifier = Modifier.statusBarsPadding(),
+                directive = navigator.scaffoldDirective,
+                value = navigator.scaffoldValue,
+                listPane = {
+
+                    AnimatedPane {
+                        ListPane(viewModel = viewModel) { film ->
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, film)
                         }
                     }
-                }
-            }
-        })
+
+
+                },
+                detailPane = {
+
+                    AnimatedPane {
+                        navigator.currentDestination?.content?.let { movie ->
+                            DetailsPane(movie) {
+                                if (navigator.canNavigateBack()) {
+                                    navigator.navigateBack()
+                                }
+                            }
+                        }
+                    }
+                })
+        }
+    }
+
+
 }
 
 

@@ -1,5 +1,6 @@
 package ru.andreypoltev.moviescompose
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -38,7 +42,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import io.ktor.http.Url
 import moviescompose.composeapp.generated.resources.Res
 import moviescompose.composeapp.generated.resources.genres
 import moviescompose.composeapp.generated.resources.movie_placeholder
@@ -57,13 +63,14 @@ fun ListPane(viewModel: MainViewModel, onFilmClicked: (Film) -> Unit) {
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
-            title = { Text(text = stringResource(Res.string.movies),
-            ) },
+            title = {
+                Text(
+                    text = stringResource(Res.string.movies),
+                )
+            },
 //            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(14, 49, 101))
         )
     }) { paddingValues ->
-
-
 
 
         LazyVerticalGrid(
@@ -83,8 +90,7 @@ fun ListPane(viewModel: MainViewModel, onFilmClicked: (Film) -> Unit) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = stringResource(Res.string.genres),
-                            fontSize = 22.sp,
+                            text = stringResource(Res.string.genres), fontSize = 22.sp,
 //                            modifier = Modifier.padding(vertical = 8.dp),
                             fontWeight = FontWeight.SemiBold
                         )
@@ -125,8 +131,7 @@ fun ListPane(viewModel: MainViewModel, onFilmClicked: (Film) -> Unit) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = stringResource(Res.string.movies),
-                            fontSize = 22.sp,
+                            text = stringResource(Res.string.movies), fontSize = 22.sp,
 //                            modifier = Modifier.padding(horizontal = 16.dp),
                             fontWeight = FontWeight.SemiBold
                         )
@@ -149,14 +154,61 @@ fun ListPane(viewModel: MainViewModel, onFilmClicked: (Film) -> Unit) {
                     onClick = { onFilmClicked(movie) },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                 ) {
-                    Column(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(4.dp))) {
-                        AsyncImage(
-                            model = movie.imageUrl,
-                            null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillWidth,
-                            error = painterResource(Res.drawable.movie_placeholder)
-                        )
+                    Column(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))) {
+
+                        Box(
+                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
+                        ) {
+
+                            val painterResource =
+                                asyncPainterResource(data = Url(movie.imageUrl.toString()))
+
+                            KamelImage(
+                                modifier = Modifier.fillMaxSize(),
+                                resource = painterResource,
+                                contentDescription = "Profile",
+                                contentScale = ContentScale.FillWidth,
+                                onLoading = { progress ->
+
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            modifier = Modifier.fillMaxSize(),
+                                            painter = painterResource(Res.drawable.movie_placeholder),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillWidth
+                                        )
+
+                                        CircularProgressIndicator()
+                                    }
+
+
+                                },
+                                onFailure = { exception ->
+
+
+                                    Image(
+                                        modifier = Modifier.fillMaxSize(),
+                                        painter = painterResource(Res.drawable.movie_placeholder),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.FillWidth
+                                    )
+
+//                                    coroutineScope.launch {
+//                                        snackbarHostState.showSnackbar(
+//                                            message = exception.message.toString(),
+//                                            actionLabel = "Hide",
+//                                            duration = SnackbarDuration.Short
+//                                        )
+//                                    }
+                                }
+                            )
+
+
+                        }
+
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(
                             text = movie.localizedName.toString(),

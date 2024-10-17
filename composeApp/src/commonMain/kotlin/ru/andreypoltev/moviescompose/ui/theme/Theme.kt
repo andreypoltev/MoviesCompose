@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 //)
 
 private val LightColorScheme = lightColorScheme(
+    primary = Yellow,
     background = Color.White,
     surface = Blue,
     onSurface = Color.White

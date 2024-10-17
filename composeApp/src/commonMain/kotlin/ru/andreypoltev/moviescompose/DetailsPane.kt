@@ -1,10 +1,13 @@
 package ru.andreypoltev.moviescompose
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,9 +33,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import io.ktor.http.Url
 import moviescompose.composeapp.generated.resources.Res
 import moviescompose.composeapp.generated.resources.arrow_left_25
+import moviescompose.composeapp.generated.resources.movie_placeholder
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.vectorResource
 import ru.andreypoltev.moviescompose.model.Film
 import ru.andreypoltev.moviescompose.ui.theme.Blue
@@ -58,13 +66,58 @@ fun DetailsPane(movie: Film, onBackClicked: () -> Unit) {
                 .verticalScroll(rememberScrollState())
         ) {
 
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                AsyncImage(
-                    model = movie.imageUrl,
-                    null,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.width(132.dp).clip(RoundedCornerShape(4.dp)),
-                )
+            Box(modifier = Modifier.heightIn(max = 200.dp), contentAlignment = Alignment.Center) {
+
+                Box(
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                ) {
+
+                    val painterResource =
+                        asyncPainterResource(data = Url(movie.imageUrl.toString()))
+
+                    KamelImage(
+                        resource = painterResource,
+                        contentDescription = "Profile",
+                        contentScale = ContentScale.Crop,
+                        onLoading = { progress ->
+
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    modifier = Modifier.fillMaxSize(),
+                                    painter = painterResource(Res.drawable.movie_placeholder),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.FillWidth
+                                )
+
+                                CircularProgressIndicator()
+                            }
+
+
+                        },
+                        onFailure = { exception ->
+
+
+                            Image(
+                                modifier = Modifier.fillMaxSize(),
+                                painter = painterResource(Res.drawable.movie_placeholder),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth
+                            )
+
+//                                    coroutineScope.launch {
+//                                        snackbarHostState.showSnackbar(
+//                                            message = exception.message.toString(),
+//                                            actionLabel = "Hide",
+//                                            duration = SnackbarDuration.Short
+//                                        )
+//                                    }
+                        })
+
+
+                }
             }
 
             Spacer(modifier = Modifier.size(24.dp))

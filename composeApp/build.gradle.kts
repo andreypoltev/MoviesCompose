@@ -34,14 +34,15 @@ kotlin {
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-
         }
 
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
 
+
             implementation(libs.ktor.client.cio)
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -68,9 +69,8 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
+            implementation(libs.kamel.image.default)
 
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.okhttp)
 
 
 
@@ -80,6 +80,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
 
             implementation(libs.ktor.client.cio)
+
         }
     }
 }
@@ -91,6 +92,7 @@ android {
     defaultConfig {
         applicationId = "ru.andreypoltev.moviescompose"
         minSdk = libs.versions.android.minSdk.get().toInt()
+//        minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
