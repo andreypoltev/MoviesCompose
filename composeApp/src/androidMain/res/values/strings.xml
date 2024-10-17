@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">MoviesCompose</string>
     <string name="movies">Movies</string>
+    <string name="genres">Genres</string>
 </resources>

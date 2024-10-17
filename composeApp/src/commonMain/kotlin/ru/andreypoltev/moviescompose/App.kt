@@ -1,20 +1,49 @@
 package ru.andreypoltev.moviescompose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import moviescompose.composeapp.generated.resources.Res
+import moviescompose.composeapp.generated.resources.genres
+import moviescompose.composeapp.generated.resources.movie_placeholder
 import moviescompose.composeapp.generated.resources.movies
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -26,7 +55,7 @@ import ru.andreypoltev.moviescompose.ui.theme.MoviesComposeTheme
 fun App() {
 
     MoviesComposeTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        Scaffold(modifier = Modifier.fillMaxSize()) {
             AppContent()
         }
     }
@@ -35,41 +64,42 @@ fun App() {
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun AppContent() {
+fun AppContent(
+
+    viewModel: MainViewModel = viewModel {
+        MainViewModel()
+    }
+
+) {
 
     val navigator = rememberListDetailPaneScaffoldNavigator<Film>()
 
-    ListDetailPaneScaffold(directive = navigator.scaffoldDirective,
+    ListDetailPaneScaffold(modifier = Modifier.statusBarsPadding(),
+        directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = {
-            ListPane() { film ->
-                navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, film)
+
+            AnimatedPane {
+                ListPane(viewModel = viewModel) { film ->
+                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, film)
+                }
             }
+
+
         },
         detailPane = {
-            DetailsPane() {
-                if (navigator.canNavigateBack()) {
-                    navigator.navigateBack()
+
+            AnimatedPane {
+                navigator.currentDestination?.content?.let { movie ->
+                    DetailsPane(movie) {
+                        if (navigator.canNavigateBack()) {
+                            navigator.navigateBack()
+                        }
+                    }
                 }
             }
         })
-
-
 }
 
-@Composable
-fun DetailsPane(onBackClicked: () -> Unit) {
-//    TODO("Not yet implemented")
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ListPane(onFilmClicked: (Film) -> Unit) {
 
-    Scaffold(topBar = {
-        CenterAlignedTopAppBar(title = { Text(stringResource(Res.string.movies)) })
-    }) {
-
-    }
-//    TODO("Not yet implemented")
-}
