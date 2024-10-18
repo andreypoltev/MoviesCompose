@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -51,6 +50,8 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import ru.andreypoltev.moviescompose.MainViewModel
 import ru.andreypoltev.moviescompose.model.Film
+import ru.andreypoltev.moviescompose.ui.composables.CustomTopBar
+import ru.andreypoltev.moviescompose.ui.composables.MovieCard
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -65,14 +66,10 @@ fun ListPane(
     val genres by viewModel.genres.collectAsState()
 
     Scaffold(topBar = {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = stringResource(Res.string.movies),
-                )
-            },
-//            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(14, 49, 101))
-        )
+
+        CustomTopBar()
+
+
     }) { paddingValues ->
 
         LazyVerticalGrid(
@@ -142,91 +139,20 @@ fun ListPane(
                     }
                 }
 
-
             }
 
 
 
 
-
-
             items(movies) { movie ->
-
-                Card(
-                    shape = RoundedCornerShape(4.dp),
-                    onClick = { onFilmClicked(movie) },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                ) {
-                    Column(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))) {
-
-                        Box(
-                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
-                        ) {
-
-                            val painterResource =
-                                asyncPainterResource(data = Url(movie.imageUrl.toString()))
-
-                            KamelImage(
-                                modifier = Modifier.fillMaxSize(),
-                                resource = painterResource,
-                                contentDescription = "Profile",
-                                contentScale = ContentScale.FillWidth,
-                                onLoading = { progress ->
-
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Image(
-                                            modifier = Modifier.fillMaxSize(),
-                                            painter = painterResource(Res.drawable.movie_placeholder),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.FillWidth
-                                        )
-
-                                        CircularProgressIndicator()
-                                    }
-
-
-                                },
-                                onFailure = { exception ->
-
-
-                                    Image(
-                                        modifier = Modifier.fillMaxSize(),
-                                        painter = painterResource(Res.drawable.movie_placeholder),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillWidth
-                                    )
-
-//                                    coroutineScope.launch {
-//                                        snackbarHostState.showSnackbar(
-//                                            message = exception.message.toString(),
-//                                            actionLabel = "Hide",
-//                                            duration = SnackbarDuration.Short
-//                                        )
-//                                    }
-                                }
-                            )
-
-
-                        }
-
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = movie.localizedName.toString(),
-                            maxLines = 2,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
-                        )
-                    }
-
-                }
-
-
+                MovieCard(movie, onFilmClicked)
             }
         }
 
 
     }
 }
+
+
+
+

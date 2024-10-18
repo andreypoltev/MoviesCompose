@@ -47,7 +47,10 @@ import kotlin.math.round
 fun DetailsPane(movie: Film, onBackClicked: () -> Unit) {
 
     Scaffold(topBar = {
-        CenterAlignedTopAppBar(title = { Text(text = movie.name.toString()) }, navigationIcon = {
+
+
+
+        CenterAlignedTopAppBar(title = { Text(text = movie.name.toString(), fontSize = 20.sp,fontWeight = FontWeight.SemiBold) }, navigationIcon = {
             IconButton(
                 onClick = onBackClicked,
                 content = {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -25,8 +26,10 @@ import ru.andreypoltev.moviescompose.model.ApiStatus
 import ru.andreypoltev.moviescompose.model.Film
 import ru.andreypoltev.moviescompose.presentation.DetailsPane
 import ru.andreypoltev.moviescompose.presentation.ListPane
+import ru.andreypoltev.moviescompose.ui.composables.CustomTopBar
 import ru.andreypoltev.moviescompose.ui.composables.LoadingIndicator
 import ru.andreypoltev.moviescompose.ui.theme.MoviesComposeTheme
+import ru.andreypoltev.moviescompose.ui.theme.Yellow
 import ru.andreypoltev.moviescompose.utils.HandleBackGesture
 
 @Composable
@@ -59,7 +62,11 @@ fun AppContent(
             val snackbarHostState = remember { SnackbarHostState() }
             val message = (apiStatus as ApiStatus.Error).message
 
-            Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) {
+            Scaffold(topBar = { CustomTopBar() }, snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { snackbarData ->
+                    Snackbar(actionColor = Yellow, snackbarData = snackbarData)
+                }
+            }) {
 
                 val res = stringResource(
                     Res.string.retry
@@ -75,10 +82,11 @@ fun AppContent(
 
                         when (result) {
 
-                            SnackbarResult.Dismissed ->  {
+                            SnackbarResult.Dismissed -> {
 
                             }
-                            SnackbarResult.ActionPerformed ->  {
+
+                            SnackbarResult.ActionPerformed -> {
                                 viewModel.retry()
                             }
                         }
@@ -89,6 +97,7 @@ fun AppContent(
         }
 
         ApiStatus.Idle, ApiStatus.Loading -> {
+
             LoadingIndicator()
         }
 
