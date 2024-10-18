@@ -7,9 +7,11 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.rootCause
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -23,14 +25,20 @@ class MainViewModel : ViewModel() {
     private val _apiStatus = MutableStateFlow<ApiStatus>(ApiStatus.Idle)
     val apiStatus = _apiStatus.asStateFlow()
 
-    private val _listOfMovies = MutableStateFlow(listOf<Film>())
+    private val _listOfMovies = MutableStateFlow(emptyList<Film>())
     val listOfMovies = _listOfMovies.asStateFlow()
 
-    private val _filteredList = MutableStateFlow(listOf<Film>())
+    private val _filteredList = MutableStateFlow(emptyList<Film>())
     val filteredList = _filteredList.asStateFlow()
 
-    private val _genres = MutableStateFlow(listOf<String>())
+    private val _genres = MutableStateFlow(emptyList<String>())
     val genres = _genres.asStateFlow()
+
+    private val httpClient = HttpClient {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
+        }
+    }
 
     init {
         fetchMovies()
@@ -40,73 +48,57 @@ class MainViewModel : ViewModel() {
         fetchMovies()
     }
 
-
     private fun fetchMovies() {
         viewModelScope.launch(Dispatchers.IO) {
             _apiStatus.value = ApiStatus.Loading
-            val apiResponse = getApiResponse()
+            when (val apiResponse = fetchMoviesFromApi()) {
+                is Result.Success -> {
+                    _listOfMovies.value = apiResponse.data
+                    _filteredList.value = apiResponse.data
 
-            if (apiResponse.isNotEmpty()) {
-                _listOfMovies.value = apiResponse
-                _filteredList.value = apiResponse
+                    val genres = apiResponse.data.mapNotNull { film ->
+                        film.genres
+                    }.flatten().filterNotNull().distinct().sortedBy { it }
 
-                val genres = apiResponse.mapNotNull { film ->
-                    film.genres
-                }.flatten().filterNotNull().distinct().sorted()
+                    _genres.value = genres
+                    _apiStatus.value = ApiStatus.Success(apiResponse.data)
+                }
 
-                _genres.value = genres
-
-                _apiStatus.value = ApiStatus.Success(apiResponse)
-            } else {
-                _apiStatus.value = ApiStatus.Error("Failed to load movies.")
+                is Result.Failure -> {
+                    _apiStatus.value =
+//                        ApiStatus.Error("Failed to load movies: ${apiResponse.exception}")
+                        ApiStatus.Error("Failed to load movies.")
+                }
             }
         }
     }
 
     fun filterMovies(genre: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-
-
-            if (genre.isNotEmpty()) {
-                val filtered = _listOfMovies.value.filter {
-                    it.genres?.contains(genre) == true
-                }
-
-                _filteredList.value = filtered
+        viewModelScope.launch(Dispatchers.Default) {
+            _filteredList.value = if (genre.isNotEmpty()) {
+                _listOfMovies.value.filter { it.genres?.contains(genre) == true }
             } else {
-                _filteredList.value = _listOfMovies.value
+                _listOfMovies.value
             }
-
-
         }
     }
 
-
-    private suspend fun getApiResponse(): List<Film> {
-
-        println("getApiResponse()")
-
-        try {
-            val client = HttpClient {
-                install(ContentNegotiation) {
-                    json(Json {
-                        ignoreUnknownKeys = true
-                    })
-                }
-            }
-
-            val resp: Movies = client.get(Constants.API_LINK).body()
-
-            println("Response is: $resp")
-
-            client.close()
-
-            return resp.films ?: listOf(Film())
-
+    private suspend fun fetchMoviesFromApi(): Result<List<Film>> {
+        return try {
+            val response: Movies = httpClient.get(Constants.API_LINK).body()
+            Result.Success(response.films ?: emptyList())
         } catch (e: Exception) {
-            println(e.message)
-            return listOf()
+            Result.Failure(e)
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        httpClient.close() // Clean up HttpClient
+    }
+}
+
+sealed class Result<out T> {
+    data class Success<out T>(val data: T) : Result<T>()
+    data class Failure(val exception: Throwable) : Result<Nothing>()
 }

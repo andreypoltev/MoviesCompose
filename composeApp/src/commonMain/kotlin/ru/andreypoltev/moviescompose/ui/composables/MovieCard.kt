@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.kamel.image.KamelImage
@@ -91,7 +92,8 @@ fun MovieCard(movie: Film, onFilmClicked: (Film) -> Unit) {
                 text = movie.localizedName.toString(),
                 maxLines = 2,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
